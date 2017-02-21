@@ -2,14 +2,11 @@
 import tensorflow as tf
 import cv2
 import numpy as np
-
-crop_region = [0, 1001, 0, 1001]
+from matplotlib import pyplot as plt
 
 clip_region = {
-	"start_row": 1,
-	"end_row": 1,
-	"start_col": 1,
-	"end_col": 1
+	"start_pos": np.array([0, 0]),
+	"end_pos": np.array([0, 0])
 }
 
 learn_region = []
@@ -20,44 +17,50 @@ def list_events():
 	print(events)
 
 
-def draw_circle(event, x, y, flags, param):
-	if event == cv2.EVENT_LBUTTONDBLCLK:
-		cv2.circle(param[0], (x, y), 100, (255, 0, 0), -1)
-
-
-def test_draw_circle():
-	img = np.zeros((512, 512, 3), np.uint8)
-	cv2.namedWindow('image')
-	cv2.setMouseCallback('image', draw_circle, [img])
-
-	while (1):
-		cv2.imshow('image', img)
-		if cv2.waitKey(20) & 0xFF == 27:
-			break
-	cv2.destroyAllWindows()
-
-
 def on_mouse(event, x, y, flags, param):
 	global clip_region
 	org = param[0]
 	if event == cv2.EVENT_LBUTTONDOWN and (flags & cv2.EVENT_FLAG_SHIFTKEY):
 		print("row %d, col %d", y, x)
-		clip_region['start_row'] = y
-		clip_region['start_col'] = x
+		clip_region['start_pos'] = np.array([x, y])
 		cv2.circle(org, (x, y), 10, (255, 0, 0))
 	elif event == cv2.EVENT_LBUTTONUP and (flags & cv2.EVENT_FLAG_SHIFTKEY):
 		print("row %d, col %d", y, x)
-		clip_region['end_row'] = y
-		clip_region['end_col'] = x
-		start_pos = (clip_region['start_col'], clip_region['start_row'])
-		end_pos = (clip_region['end_col'], clip_region['end_row'])
-		if start_pos != end_pos:
-			cv2.rectangle(org, end_pos, start_pos, (0, 0, 255), 2)
+		clip_region['end_pos'] = np.array([x, y])
+		if (clip_region['start_pos'] - clip_region['end_pos']).any():
+			cv2.rectangle(org, tuple(clip_region['start_pos']), tuple(clip_region['end_pos']), (0, 0, 255), 2)
+			train_data(org)
 	elif event == cv2.EVENT_MOUSEMOVE and (flags & cv2.EVENT_FLAG_CTRLKEY):
 		print("row %d, col %d", y, x)
 		learn_region.append((x, y))
 		cv2.circle(org, (x, y), 10, (0, 255, 0))
+
+
+def on_learn():
 	pass
+
+
+def train_data(image):
+	dim = np.abs(clip_region['start_pos'] - clip_region['end_pos'])
+	x = min(clip_region['start_pos'][0], clip_region['end_pos'][0])
+	y = min(clip_region['start_pos'][1], clip_region['end_pos'][1])
+
+	img = image[y:y + dim[1], x:x + dim[0], :3]
+	# cv2.namedWindow('clip')
+	# cv2.imshow('clip', img)
+	#
+	kernal = np.array([16, 16])
+	half_kernal = kernal / 2
+	dim -= kernal
+	tmp = np.random.rand(16).reshape(4, 4)
+	_, axarr = plt.subplots(dim[0], dim[1])
+	for i in range(1, dim[0]):
+		for j in range(1, dim[1]):
+			axarr[i, j].imshow(tmp)
+		# plt.subplot(i, j)
+		# plt.imshow(tmp)
+	plt.show()
+	return img
 
 
 def main():
