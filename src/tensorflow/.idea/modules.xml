@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../MPU/.idea/MPU.iml" filepath="$PROJECT_DIR$/../MPU/.idea/MPU.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../caffe/.idea/caffe.iml" filepath="$PROJECT_DIR$/../caffe/.idea/caffe.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/tensorflow.iml" filepath="$PROJECT_DIR$/.idea/tensorflow.iml" />
     </modules>
   </component>
